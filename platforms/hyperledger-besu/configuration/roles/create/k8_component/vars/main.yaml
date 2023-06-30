@@ -1,0 +1,11 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+dlt_templates:
+  namespace: namespace.tpl
+  aws-storageclass: eks_csi_storageclass.tpl # use eks_storageclass.tpl for non csi provisioning on eks 1.22 or below
+  minikube-storageclass: mini_storageclass.tpl
+  gcp-storageclass: gcp-storageclass.tpl

@@ -1,0 +1,10 @@
+##############################################################################################
+#  Copyright Accenture. All Rights Reserved.
+#
+#  SPDX-License-Identifier: Apache-2.0
+##############################################################################################
+
+dlt_templates:
+  namespace: namespace.tpl
+  aws-storageclass: eks_storageclass.tpl
+  minikube-storageclass: mini_storageclass.tpl

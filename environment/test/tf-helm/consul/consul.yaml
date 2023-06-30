@@ -1,0 +1,120 @@
+client:
+  enabled: true
+
+server:
+
+  # If true, the chart will install all the resources necessary for a
+  # Consul server cluster. If you're running Consul externally and want agents
+  # within Kubernetes to join that cluster, this should probably be false.
+  # @default: global.enabled
+  # @type: boolean
+  enabled: "-"
+
+  # The name of the Docker image (including any tag) for the containers running
+  # Consul server agents.
+  # @type: string
+  image: null
+
+  # The number of server agents to run. This determines the fault tolerance of
+  # the cluster. Please refer to the [deployment table](https://developer.hashicorp.com/consul/docs/architecture/consensus#deployment-table)
+  # for more information.
+  replicas: ${replicas}
+
+  # The number of servers that are expected to be running.
+  # It defaults to server.replicas.
+  # In most cases the default should be used, however if there are more
+  # servers in this datacenter than server.replicas it might make sense
+  # to override the default. This would be the case if two kube clusters
+  # were joined into the same datacenter and each cluster ran a certain number
+  # of servers.
+  # @type: int
+  bootstrapExpect: null
+
+  # A secret containing a certificate & key for the server agents to use
+  # for TLS communication within the Consul cluster. Cert needs to be provided with
+  # additional DNS name SANs so that it will work within the Kubernetes cluster:
+  #
+  # Kubernetes Secrets backend:
+  # ```bash
+  # consul tls cert create -server -days=730 -domain=consul -ca=consul-agent-ca.pem \
+  #     -key=consul-agent-ca-key.pem -dc={{datacenter}} \
+  #     -additional-dnsname="{{fullname}}-server" \
+  #     -additional-dnsname="*.{{fullname}}-server" \
+  #     -additional-dnsname="*.{{fullname}}-server.{{namespace}}" \
+  #     -additional-dnsname="*.{{fullname}}-server.{{namespace}}.svc" \
+  #     -additional-dnsname="*.server.{{datacenter}}.{{domain}}" \
+  #     -additional-dnsname="server.{{datacenter}}.{{domain}}"
+  # ```
+  #
+  # If you have generated the server-cert yourself with the consul CLI, you could use the following command
+  # to create the secret in Kubernetes:
+  #
+  # ```bash
+  # kubectl create secret generic consul-server-cert \
+  #     --from-file='tls.crt=./dc1-server-consul-0.pem'
+  #     --from-file='tls.key=./dc1-server-consul-0-key.pem'
+  # ```
+  #
+  # Vault Secrets backend:
+  # If you are using Vault as a secrets backend, a Vault Policy must be created which allows `["create", "update"]`
+  # capabilities on the PKI issuing endpoint, which is usually of the form `pki/issue/consul-server`.
+  # Complete [this tutorial](https://developer.hashicorp.com/consul/tutorials/vault-secure/vault-pki-consul-secure-tls)
+  # to learn how to generate a compatible certificate.
+  # Note: when using TLS, both the `server.serverCert` and `global.tls.caCert` which points to the CA endpoint of this PKI engine
+  # must be provided.
+  serverCert:
+    # The name of the Vault secret that holds the PEM encoded server certificate.
+    # @type: string
+    secretName: null
+
+  # Exposes the servers' gossip and RPC ports as hostPorts. To enable a client
+  # agent outside of the k8s cluster to join the datacenter, you would need to
+  # enable `server.exposeGossipAndRPCPorts`, `client.exposeGossipPorts`, and
+  # set `server.ports.serflan.port` to a port not being used on the host. Since
+  # `client.exposeGossipPorts` uses the hostPort 8301,
+  # `server.ports.serflan.port` must be set to something other than 8301.
+  exposeGossipAndRPCPorts: false
+
+  # Configures ports for the consul servers.
+  ports:
+    # Configures the LAN gossip port for the consul servers. If you choose to
+    # enable `server.exposeGossipAndRPCPorts` and `client.exposeGossipPorts`,
+    # that will configure the LAN gossip ports on the servers and clients to be
+    # hostPorts, so if you are running clients and servers on the same node the
+    # ports will conflict if they are both 8301. When you enable
+    # `server.exposeGossipAndRPCPorts` and `client.exposeGossipPorts`, you must
+    # change this from the default to an unused port on the host, e.g. 9301. By
+    # default the LAN gossip port is 8301 and configured as a containerPort on
+    # the consul server Pods.
+    serflan:
+      port: 8301
+
+  # This defines the disk size for configuring the
+  # servers' StatefulSet storage. For dynamically provisioned storage classes, this is the
+  # desired size. For manually defined persistent volumes, this should be set to
+  # the disk size of the attached volume.
+  storage: 10Gi
+
+  # The StorageClass to use for the servers' StatefulSet storage. It must be
+  # able to be dynamically provisioned if you want the storage
+  # to be automatically created. For example, to use
+  # local(https://kubernetes.io/docs/concepts/storage/storage-classes/#local)
+  # storage classes, the PersistentVolumeClaims would need to be manually created.
+  # A `null` value will use the Kubernetes cluster's default StorageClass. If a default
+  # StorageClass does not exist, you will need to create one.
+  # Refer to the [Read/Write Tuning](https://developer.hashicorp.com/consul/docs/install/performance#read-write-tuning)
+  # section of the Server Performance Requirements documentation for considerations
+  # around choosing a performant storage class.
+  #
+  # ~> **Note:** The [Reference Architecture](https://developer.hashicorp.com/consul/tutorials/production-deploy/reference-architecture#hardware-sizing-for-consul-servers)
+  # contains best practices and recommendations for selecting suitable
+  # hardware sizes for your Consul servers.
+  # @type: string
+  storageClass: null
+
+  # This will enable/disable [Connect](https://developer.hashicorp.com/consul/docs/connect). Setting this to true
+  # _will not_ automatically secure pod communication, this
+  # setting will only enable usage of the feature. Consul will automatically initialize
+  # a new CA and set of certificates. Additional Connect settings can be configured
+  # by setting the `server.extraConfig` value.
+  connect: true

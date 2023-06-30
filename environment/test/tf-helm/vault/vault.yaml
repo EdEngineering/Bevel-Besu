@@ -1,0 +1,63 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+# Available parameters and their default values for the Vault chart.
+
+server:
+  # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
+  # used to include variables required for auto-unseal.
+  extraEnvironmentVars: 
+    VAULT_ADDR: http://127.0.0.1:8200
+    VAULT_SKIP_VERIFY: "true"
+
+  # This configures the Vault Statefulset to create a PVC for data
+  # storage when using the file or raft backend storage engines.
+  # See https://www.vaultproject.io/docs/configuration/storage/index.html to know more
+  dataStorage:
+    enabled: true
+
+  # Run Vault in "standalone" mode. This is the default mode that will deploy if
+  # no arguments are given to helm. This requires a PVC for data storage to use
+  # the "file" backend.  This mode is not highly available and should not be scaled
+  # past a single replica.
+  standalone:
+    enabled: true
+
+  # Run Vault in "HA" mode. There are no storage requirements unless the audit log
+  # persistence is required.  In HA mode Vault will configure itself to use Consul
+  # for its storage backend.  The default configuration provided will work the Consul
+  # Helm project by default.  It is possible to manually configure Vault to use a
+  # different HA backend.
+  ha:
+    enabled: true
+    replicas: ${replicas}
+
+    # Enables Vault's integrated Raft storage.  Unlike the typical HA modes where
+    # Vault's persistence is external (such as Consul), enabling Raft mode will create
+    # persistent volumes for Vault to store data according to the configuration under server.dataStorage.
+    # The Vault cluster will coordinate leader elections and failovers internally.
+    config: |
+      ui = true
+
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "consul" {
+        path = "vault"
+        address = "HOST_IP:8500"
+      }
+
+# Vault UI
+ui:
+  # True if you want to create a Service entry for the Vault UI.
+  #
+  # serviceType can be used to control the type of service created. For
+  # example, setting this to "LoadBalancer" will create an external load
+  # balancer (for supported K8S installations) to access the UI.
+  enabled: true
+  serviceType: "LoadBalancer"
+  serviceNodePort: null
+  externalPort: 8200
+  targetPort: 8200
