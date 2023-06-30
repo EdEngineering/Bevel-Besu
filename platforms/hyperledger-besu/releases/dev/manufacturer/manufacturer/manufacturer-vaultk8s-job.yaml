@@ -20,7 +20,7 @@ spec:
       name: manufacturer-vaultk8s-job
       namespace: manufacturer-bes
       images:
-        alpineutils: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+        alpineutils: ghcr.io/hyperledger/alpine-utils:1.0
         pullPolicy: IfNotPresent
 
     vault:
@@ -36,8 +36,8 @@ spec:
       kubernetes_url: https://34.148.153.246
     
     rbac:
-      create: True
+      create: False
 
     serviceAccount:
-      create: True
+      create: False
       name: vault-auth
