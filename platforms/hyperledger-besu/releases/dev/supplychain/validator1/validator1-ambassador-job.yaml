@@ -20,7 +20,7 @@ spec:
       name: validator1-ambassador-job
       namespace: supplychain-bes
     image:
-      alpineutils: index.docker.io/hyperledgerlabs/bevel-alpine:latest
+      alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
       pullSecret: regcred
       pullPolicy: IfNotPresent
     network:
