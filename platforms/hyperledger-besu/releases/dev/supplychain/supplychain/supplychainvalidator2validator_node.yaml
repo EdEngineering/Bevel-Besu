@@ -1,0 +1,98 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: supplychainvalidator2validator-node
+  namespace: supplychain-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: supplychainvalidator2validator-node
+  interval: 1m
+  chart:
+   spec:
+    chart: platforms/hyperledger-besu/charts/node_validator
+    sourceRef:
+      kind: GitRepository
+      name: flux-dev
+      namespace: flux-dev
+  values:
+    replicaCount: 1
+
+    healthcheck:
+      readinessthreshold: 100
+      readinesscheckinterval: 5
+
+    staticnodes:
+      - "enode://d68b60614aeb97d0a35fc8e3fa8f3ed6071d9bac7c05be550ca821d2a0a2716e5465bcf56155ea145bf607da304777311997ab181fdf2060163e5c4abf9bcdb6@validator1.supplychain-bes.svc.cluster.local:30303"
+      - "enode://078230215d998d9deb7dafa0a23b3ab084c33db851a77d9cdba001af7412459f9f42074e2f4328ee8f0dd7a9f09713714bca0c63e335052fc7295c0a340dcffa@validator2.supplychain-bes.svc.cluster.local:30303"
+      - "enode://87303bab77dd6fd208299a38aa7ce9ec03ef05d4b022b68c8e2230be23ca0de042138d81b5264d38ce4efe4949cc2c79d7df1d1c9dc935f895ce12de5f271534@validator3.supplychain-bes.svc.cluster.local:30303"
+      - "enode://9340177dc02713601d74ac2c6d34155c210f30ed5ab87cda76d1cdfcecc862d8a43dd6c451f31a71321fdc0528bc2626cca6f45be6eb7f2890d5d97076f96cfb@validator4.supplychain-bes.svc.cluster.local:30303"
+      - "enode://6c2c4879f764a22bcf3f06d558acb68a63f8b101b29b6a5d4aa18ae6a433b3f6e0efd0d4f55f18a3db0fb48b57dedfcb227d53cee1cb556bacc1a793b3a73777@carrier.carrier-bes.svc.cluster.local:30303"
+      - "enode://94af07284bf967916d7c0a3fbfdeca6a8ffc4fa3061c4ba4a6c5aa70882a8d87790ea0b909fa1be9827c641228b3d8b1804aafbfa37bf55da297a6e0b32e7fca@manufacturer.manufacturer-bes.svc.cluster.local:30303"
+      - "enode://544cd39eb4005b1bb01eaeebb65c97ccdef5717fdf5024bf35973630c919a653592c84d8743f5b5df529e6418cc7732b851d8a29b39495335773a609eef9b14b@store.store-bes.svc.cluster.local:30303"
+      - "enode://31f97a9bf1b1ecc29b1ea16b6cc0424ffe1d94888bfebee952540cc2a1d7114d766907d87b85767e4e7847b08bcd268c42dfa8de63e4d195ab99a1bef588d801@warehouse.warehouse-bes.svc.cluster.local:30303"
+
+    metadata:
+      namespace: supplychain-bes
+      labels:
+
+    ambassador:
+      external_url_suffix: supplychain-bes.svc.cluster.local
+
+    liveliness_check:
+      enabled: false
+    proxy:
+      provider: none
+      external_url: supplychain.supplychain-bes
+      p2p: 30303
+      rpc: 8545
+
+    images:
+      node: hyperledger/besu:21.10.6
+      alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+      pullPolicy: IfNotPresent
+
+    node:
+      name: validator2
+      tls: True
+      consensus: ibft
+      mountPath: /opt/besu/data
+      servicetype: ClusterIP
+      imagePullSecret: regcred
+      ports:
+        p2p: 30303
+        rpc: 8545
+        ws: 8546
+
+      permissioning:
+        enabled: False
+      
+    storage:
+      storageclassname: gcpstorageclass
+      storagesize: 1Gi
+
+    vault:
+      address: http://34.74.54.38:8200
+      secretengine: secretsv2
+      secretprefix: data/supplychain-bes/crypto/validator2
+      serviceaccountname: vault-auth
+      keyname: data
+      tlsdir: tls
+      role: vault-role
+      authpath: besusupplychain
+      type: hashicorp
+
+    genesis: 
+
+   
+    labels:  
+      service:
+        - component: besu
+      pvc:
+      deployment:
+        - owner: bevel
+        - component: besu
+
+    metrics:
+      enabled: False
+      port: 9545    
