@@ -53,7 +53,7 @@ spec:
 {% if provider == 'none' %}
       gossipexternalendpoint: {{ peer_name }}.{{ peer_ns }}:7051
 {% else %}
-      gossipexternalendpoint: {{ peer.peerAddress }}
+      gossipexternalendpoint: {{ peer_name }}.{{ peer_ns }}.{{item.external_url_suffix}}:8443
 {% endif %}
       localmspid: {{ name }}MSP
       loglevel: info
@@ -118,4 +118,4 @@ spec:
             cpu: 1
           requests:
             memory: 512M
-            cpu: 0.25
+            cpu: 0.5

@@ -16,7 +16,7 @@ Profiles:
 {% else %}
 {% set path = orderer.uri.split(':') %}
         - Host: {{ path[0] }}
-          Port: {{ path[1] }}
+          Port: 8443
 {% endif %}
           ClientTLSCert: ./crypto-config/ordererOrganizations/{{ component_ns }}/orderers/{{ orderer.name }}.{{ component_ns }}/tls/server.crt
           ServerTLSCert: ./crypto-config/ordererOrganizations/{{ component_ns }}/orderers/{{ orderer.name }}.{{ component_ns }}/tls/server.crt

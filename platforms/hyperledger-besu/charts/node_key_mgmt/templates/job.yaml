@@ -39,10 +39,10 @@ spec:
         {{- end }}
         {{- end }}
     spec:
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 3000
       restartPolicy: OnFailure
       imagePullSecrets:
         - name: "{{ $.Values.image.pullSecret }}"

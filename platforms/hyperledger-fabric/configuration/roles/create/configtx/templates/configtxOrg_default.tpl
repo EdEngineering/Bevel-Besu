@@ -26,9 +26,8 @@
       - Host: {{ peer.name }}.{{ component_ns }}
         Port: 7051
 {% else %}
-{% set path = peer.peerAddress.split(':') %}
-      - Host: {{ path[0] }}
-        Port: {{ path[1] }}
+      - Host: {{ peer.name }}.{{ component_ns }}.{{ item.external_url_suffix }}
+        Port: 8443
 {% endif %}
 {% endif %}
 {% endfor %}

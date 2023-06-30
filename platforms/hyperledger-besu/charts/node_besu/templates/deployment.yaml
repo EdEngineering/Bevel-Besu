@@ -65,10 +65,8 @@ spec:
     spec:
       serviceAccountName: {{ .Values.vault.serviceaccountname }}
       hostname: {{ .Values.node.name }}.{{ .Values.metadata.namespace }}
-      {{- with .Values.securityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        fsGroup: 1000
       imagePullSecrets:
           - name: {{ .Values.node.imagePullSecret }}
       volumes:

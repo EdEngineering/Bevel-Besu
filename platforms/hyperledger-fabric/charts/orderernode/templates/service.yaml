@@ -13,7 +13,7 @@ metadata:
     {{- if $.Values.annotations }}
     {{- range $key, $value := $.Values.annotations.service }}
     {{- range $k, $v := $value }}
-    {{ $k }}: {{ $v | quote }}
+      {{ $k }}: {{ $v | quote }}
     {{- end }}
     {{- end }}
     {{- end }} 
@@ -25,8 +25,7 @@ metadata:
       name: tls_context_{{ $.Values.orderer.name }}_{{ $.Values.metadata.namespace }}
       hosts:
       - {{ $.Values.orderer.name }}.{{ $.Values.proxy.external_url_suffix }}
-      secret: {{ $.Values.orderer.name }}-{{ $.Values.metadata.namespace }}-ambassador-certs.default
-      secret_namespacing: true
+      secret: {{ $.Values.orderer.name }}-{{ $.Values.metadata.namespace }}-ambassador-certs
       alpn_protocols: h2
       min_tls_version: v1.2
       ---
@@ -36,7 +35,7 @@ metadata:
       grpc: True
       name: orderer_mapping_{{ $.Values.orderer.name }}_{{ $.Values.metadata.namespace }}
       headers:
-        :authority: {{ $.Values.orderer.ordererAddress }}
+        :authority: {{ $.Values.orderer.name }}.{{ $.Values.proxy.external_url_suffix }}:8443
       prefix: /
       rewrite: /
       service: https://{{ $.Values.orderer.name }}.{{ $.Values.metadata.namespace }}:7050
