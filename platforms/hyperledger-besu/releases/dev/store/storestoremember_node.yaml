@@ -1,0 +1,104 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: storestoremember-node
+  namespace: store-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: storestoremember-node
+  interval: 1m
+  chart:
+   spec:
+    chart: platforms/hyperledger-besu/charts/node_besu
+    sourceRef:
+      kind: GitRepository
+      name: flux-dev
+      namespace: flux-dev
+  values:
+    metadata:
+      namespace: store-bes
+      labels:
+    replicaCount: 1
+    staticnodes:
+      - "enode://62857fccbc0c967763c7bb07fa914e360d4aa6d90ee4d7364042d2c48096028238741d0d7ad1020879a3a871f537f2e0247583381a7f046daec4ac9cfd5697e3@validator1.supplychain-bes.svc.cluster.local:30303"
+      - "enode://e5f2472ce1d54585bf545bcf470daea6c2db3f2a2262e97f21e8e270c7e8a2911ddfb39e26c94f9533b595becddd629d90ae8e4f9cc2225e1665b70c62627fdf@validator2.supplychain-bes.svc.cluster.local:30303"
+      - "enode://211147c8a96093860ec50c46d333651f9eda60a982f199ee0c59d3e6f0761cfaaa47c4ed4d7a57b4ca392101221bcb25041798eb92178302cb5847ec5464382e@validator3.supplychain-bes.svc.cluster.local:30303"
+      - "enode://c0a27ee939864e1a3cb6aa2c340c2e3f06ec602437d4f316b21ed6ef24c517e37fbabecdd21cafc88f340a292b4979831d2a1460215b598277f4156f6d7f0902@validator4.supplychain-bes.svc.cluster.local:30303"
+      - "enode://886f2e539512dded06e62539dfdfced14aa5c832313154df1bfe291b2e9095627f2607dd71137a2a7e92a57660ac8da0c2ff271f9f889ea441f2acd7cf43dea1@carrier.carrier-bes.svc.cluster.local:30303"
+      - "enode://ea10d9b680cdab3fbba7fbfd8b77338a158f31872f765f3d211fad80f4a4f3e1c3728eb608b4ddbf03488c00dbb022b0e16179bd6e048764e04e6e1309acb2ff@manufacturer.manufacturer-bes.svc.cluster.local:30303"
+      - "enode://51beee2ebd3f90ba88ba0a1ab1dbc0273c6dfaf8ebe1a58627944ee0b66290a16eac7c14197d872d7cc756d5ab470b5f17b8e01b060b663696ef1daf745bb851@store.store-bes.svc.cluster.local:30303"
+      - "enode://04a45089740976df9aca5a0e28e9547cbb9c86a9a9024ffda2ce76310a231ceff08a937a041daf0e83173478bd5b7a4d31122487b11c2ddfa70a8b55fbb31a52@warehouse.warehouse-bes.svc.cluster.local:30303"
+
+    liveliness_check:
+      enabled: false
+    healthcheck:
+      readinessthreshold: 100
+      readinesscheckinterval: 5
+    proxy:
+      provider: none
+      external_url: store.store-bes
+      p2p: 30303
+      rpc: 8545
+
+    images:
+      node: hyperledger/besu:21.10.6
+      alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+      pullPolicy: IfNotPresent
+
+    node:
+      name: store
+      consensus: ibft
+      subject: O=Store,OU=Store,L=40.73/-74/New York,C=US
+      mountPath: /opt/besu/data
+      servicetype: ClusterIP
+      imagePullSecret: regcred
+      ports:
+        p2p: 30303
+        rpc: 8545
+        ws: 8546
+
+      permissioning:
+        enabled: False
+
+    tm:
+      type: tessera
+      tls: True
+      url: "https://store-tessera.store-bes:8888"
+
+    privacy:
+      enabled: true
+      public_key_file: /secrets/tm_key.pub
+      tm_flag: true
+
+    storage:
+      storageclassname: gcpstorageclass
+      storagesize: 1Gi
+
+    vault:
+      address: http://104.154.157.43:8200
+      secretengine: secretsv2
+      secretprefix: data/store-bes/crypto/store
+      serviceaccountname: vault-auth
+      keyname: data
+      tmdir: tm
+      tlsdir: tls
+      role: vault-role
+      type: hashicorp
+      authpath: besustore
+
+    genesis: 
+
+   
+    labels:  
+      service:
+        - component: besu
+      pvc:
+      deployment:
+        - owner: bevel
+        - component: besu
+ 
+
+    metrics:
+      enabled: False
+      port: 9545
