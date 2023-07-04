@@ -1,7 +1,7 @@
 variable "project" {
   type        = string
   description = "Google Cloud Platform Project ID"
-  default     = "ansible-bevel-test"
+  default     = "bevel-testing"
 }
 
 variable "name" {
@@ -11,12 +11,12 @@ variable "name" {
 variable "region" {
   type        = string
   description = "Infrastructure Region"
-  default     = "us-east1"
+  default     = "us-central1"
 }
 
 variable "zone" {
   type    = string
-  default = "us-east1-c"
+  default = "us-central1-c"
 }
 
 variable "subnet_name" {
@@ -36,7 +36,7 @@ variable "ip_range_services_name" {
 
 variable "cluster_node_zones" {
   type    = list(string)
-  default = ["us-east1-c"]
+  default = ["us-central1-c"]
 }
 
 variable "node_count" {
