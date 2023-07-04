@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: store-node-key-mgmt
+  namespace: store-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: store-node-key-mgmt
+  interval: 1m
+  chart:
+   spec:
+    chart: platforms/hyperledger-besu/charts/node_key_mgmt
+    sourceRef:
+      kind: GitRepository
+      name: flux-dev
+      namespace: flux-dev
+  values:
+    metadata:
+      name: store-node-key-mgmt
+      namespace: store-bes
+    image:
+      besucontainer: hyperledger/besu:21.10.6
+    vault:
+      address: http://104.154.157.43:8200
+      secretengine: secretsv2
+      authpath: besustore
+      type: hashicorp
+      role: vault-role
+    organisation:
+      namespace: store-bes
+      nodes:
+        - name: store
