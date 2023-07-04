@@ -1,0 +1,80 @@
+apiVersion:  helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: manufacturertessera
+  namespace: manufacturer-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: manufacturertessera
+  interval: 1m
+  chart:
+   spec:
+    chart: platforms/hyperledger-besu/charts/node_tessera
+    sourceRef:
+      kind: GitRepository
+      name: flux-dev
+      namespace: flux-dev
+  values:
+    replicaCount: 1
+    metadata:
+      namespace: manufacturer-bes
+      labels:
+    images:
+      alpineutils: ghcr.io/hyperledger/bevel-alpine-ext:latest
+      tessera: quorumengineering/tessera:hashicorp-21.7.3
+      busybox: busybox
+      mysql: mysql/mysql-server:5.7
+      imagePullSecret: regcred
+      pullPolicy: IfNotPresent
+    tessera:
+      name: manufacturer-tessera
+      dbname: demodb
+      dburl: "jdbc:mysql://manufacturer-tessera:3306/demodb"
+      dbusername: demouser
+      tls: "STRICT"
+      url: "https://manufacturer-tessera.manufacturer-bes:443"
+      clienturl: "https://manufacturer-tessera:8888"
+      othernodes:
+        - url: https://carrier-tessera.carrier-bes
+      trust: "TOFU"
+
+      servicetype: ClusterIP
+      ports:
+        tm: 443
+        db: 3306
+        client: 8888
+      mountPath: /etc/tessera/data
+      ambassadorSecret: manufacturer-ambassador-certs
+    vault:
+      address: http://104.154.157.43:8200
+      secretengine: secretsv2
+      tmsecretpath: manufacturer-bes/crypto/manufacturer/tm
+      secretprefix: data/manufacturer-bes/crypto/manufacturer
+      serviceaccountname: vault-auth
+      keyname: credentials
+      type: hashicorp
+      tm_keyname: tm
+      tlsdir: tls
+      role: vault-role
+      authpath: besumanufacturer
+    proxy:
+      provider: "none"
+      external_url: manufacturer.manufacturer-bes
+      portTM: 443
+    storage:
+      storageclassname: gcpstorageclass
+      storagesize: 1Gi
+      dbstorage: 1Gi
+
+    labels:
+      service:
+        - component: besu
+      pvc:
+      deployment:
+        - owner: bevel
+        - component: besu
+
+    metrics:
+      enabled: False
+      port: 9545
