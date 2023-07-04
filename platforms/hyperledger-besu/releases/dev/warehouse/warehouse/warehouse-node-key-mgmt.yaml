@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: warehouse-node-key-mgmt
+  namespace: warehouse-bes
+  annotations:
+    flux.weave.works/automated: "false"
+spec:
+  releaseName: warehouse-node-key-mgmt
+  interval: 1m
+  chart:
+   spec:
+    chart: platforms/hyperledger-besu/charts/node_key_mgmt
+    sourceRef:
+      kind: GitRepository
+      name: flux-dev
+      namespace: flux-dev
+  values:
+    metadata:
+      name: warehouse-node-key-mgmt
+      namespace: warehouse-bes
+    image:
+      besucontainer: hyperledger/besu:21.10.6
+    vault:
+      address: http://104.154.157.43:8200
+      secretengine: secretsv2
+      authpath: besuwarehouse
+      type: hashicorp
+      role: vault-role
+    organisation:
+      namespace: warehouse-bes
+      nodes:
+        - name: warehouse
